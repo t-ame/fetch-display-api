@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,7 +10,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -53,11 +54,30 @@ class _MyApiHomeState extends State<MyApiHome> {
               future: futureUser,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  return BasicUserWidget().getUserWidgetList(snapshot.data);
+                  return ListView.builder(
+                    itemCount: snapshot.data.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Column(
+                          children: <Widget>[
+                            BasicUserInfo().getUserWidget(snapshot.data[index]),
+                            SizedBox(height: 1,)
+                          ],
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UserDetailsScreen(user: snapshot.data[index],),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
                 } else if (snapshot.hasError) {
                   return Text("${snapshot.error}");
                 }
-
                 // By default, show a loading spinner.
                 return CircularProgressIndicator();
               },
@@ -67,15 +87,31 @@ class _MyApiHomeState extends State<MyApiHome> {
       ),
     );
   }
-  //BasicUserWidget().getUserWidgetList(snapshot.data)
 }
 
-class ClickedUserData extends StatelessWidget {
+
+class UserDetailsScreen extends StatelessWidget {
+  final User user;
+  UserDetailsScreen({Key key, @required this.user}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text('User with id: ' + user.id.toString()) ,
+      ),
+      body: Center(
+          child:
+          Container(
+            margin: EdgeInsets.all(20),
+              child: UserDetails().getDataWidget(user)
+          )
+      ),
+    );
   }
 }
+
 
 
 
@@ -90,13 +126,9 @@ class ClickedUserData extends StatelessWidget {
 
 */
 
-class BasicUserWidget {
-  Widget getUserWidgetList(List<User> users){
-    var widgetList = List<Widget>();
-
-    for(var user in users){
-      widgetList.add(
-          Container(
+class BasicUserInfo{
+  Widget getUserWidget(User user){
+          return Container(
             width: 400,
             color: Colors.blueGrey[100],
             child: Column(
@@ -105,29 +137,98 @@ class BasicUserWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 20
                 ),),
-                Text(user.email, style: TextStyle(
+                Text(user.email , style: TextStyle(
                     fontStyle: FontStyle.italic,
                     fontSize: 15
-                ),)
+                ),),
               ],
             ),
-          )
-      );
-      widgetList.add(
-          SizedBox(height: 5,)
-      );
+          );
     }
-    return Column(
-      children: widgetList,
-    );
-  }
 }
 
-class UserData {
-
-  Widget getWidget(User user) {
+class UserDetails {
+  Widget getDataWidget(User user) {
     return Container(
-
+      color: Colors.blueGrey[100],
+        padding: EdgeInsets.all(20),
+        width: 400,
+        height: 400,
+        child: Center(
+          child: Column(
+            children: <Widget>[
+              Text(user.name, style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),),
+              SizedBox(height: 5,),
+              Text(user.username, style: TextStyle(
+                fontSize: 20,
+              ),),
+              SizedBox(height: 5,),
+              Text('Email: ' + user.email, style: TextStyle(
+                fontSize: 15,
+                fontStyle: FontStyle.italic
+              ),),
+              SizedBox(height: 5,),
+              Text('Phone: ' + user.phone, style: TextStyle(
+                fontSize: 15,
+              ),),
+              SizedBox(height: 5,),
+              Text('Website: ' + user.website, style: TextStyle(
+                fontSize: 15,
+              ),),
+              SizedBox(height: 20,),
+              Container(
+                padding: EdgeInsets.all(10),
+                width: 300,
+                color: Colors.blueGrey[50],
+                child: Row(
+                  children: <Widget>[
+                    Text('Company: '),
+                    SizedBox(width: 8,),
+                    Column(
+                      children: <Widget>[
+                        Text(user.company.name, style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold
+                        ),),
+                        SizedBox(height: 2,),
+                        Text(user.company.catchPhrase + '\n' + user.company.bs, style: TextStyle(
+                          fontSize: 11,
+                        ),),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 5,),
+              Container(
+                padding: EdgeInsets.all(10),
+                width: 300,
+                color: Colors.blueGrey[50],
+                child: Row(
+                  children: <Widget>[
+                    Text('Address: '),
+                    SizedBox(width: 8,),
+                    Column(
+                      children: <Widget>[
+                        Text(user.address.suite + ', ' + user.address.street + ', \n' + user.address.city + ', ' + user.address.zipcode + '.', style: TextStyle(
+                          fontSize: 13,
+                        ),),
+                        SizedBox(height: 2,),
+                        Text('Longitude: ' + user.address.geo.lng + ', Latitude: ' + user.address.geo.lat, style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic
+                        ),),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
     );
   }
 }
@@ -160,16 +261,6 @@ Future<List<User>> fetchUsers() async {
   }
 }
 
-Future<User> fetchUser() async {
-  final response = await http.get('https://jsonplaceholder.typicode.com/users/1');
-
-  if (response.statusCode == 200) {
-    return User.fromJson(json.decode(response.body));
-  } else {
-    throw Exception('Failed to load album');
-  }
-}
-
 
 
 
@@ -196,7 +287,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id:  json['street'],
+      id:  json['id'],
       name:  json['name'],
       username:  json['username'],
       email:  json['email'],
