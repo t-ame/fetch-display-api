@@ -42,7 +42,7 @@ class _MyApiHomeState extends State<MyApiHome> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Users\' List'),
+        title: Text('User List'),
       ),
       body: Container(
         color: Colors.white,
@@ -58,6 +58,9 @@ class _MyApiHomeState extends State<MyApiHome> {
                     itemCount: snapshot.data.length,
                     itemBuilder: (context, index) {
                       return ListTile(
+                        leading: const Icon(Icons.account_box, size: 50,),
+                        enabled: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 15.0),
                         title: Column(
                           children: <Widget>[
                             BasicUserInfo().getUserWidget(snapshot.data[index]),
@@ -129,8 +132,11 @@ class UserDetailsScreen extends StatelessWidget {
 class BasicUserInfo{
   Widget getUserWidget(User user){
           return Container(
-            width: 400,
-            color: Colors.blueGrey[100],
+            width: 300,
+            decoration: new BoxDecoration(
+                color: Colors.blueGrey[100],
+                borderRadius: new BorderRadius.all(Radius.circular(5))
+            ),
             child: Column(
               children: <Widget>[
                 Text(user.name, style: TextStyle(
