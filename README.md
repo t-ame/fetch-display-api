@@ -1,4 +1,4 @@
-# Fetch an Display
+# Fetch and Display
 
 Fetch and display data from API
 
